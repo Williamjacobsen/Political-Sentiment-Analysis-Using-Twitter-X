@@ -66,8 +66,9 @@ def send_keysElement(wait, xpath, keys):
         showmore_link = wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
         showmore_link.send_keys(keys)
 
-    except Exception:
+    except Exception as e:
         print("Couldn't send keys")
+        print(e)
 
 def signInTwitter():
     driver1.get('https://x.com/home')
@@ -112,8 +113,7 @@ def signInTwitter():
         '//*[@id="layers"]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[2]/div/div[1]/div/div/button/div'
     )
     
-    #input("Login... \nPress enter to continue...")
-
+    # remove this test:
     for i in range(5):
         text = locateElement(
             wait1,
@@ -123,14 +123,29 @@ def signInTwitter():
 
 def signInOpenai():
     """
-        Do to OpenAI having better anti-botting protection,
+        Due to OpenAI having better anti-botting protection,
         you have to sign in manually.
     """
     driver2.get('https://www.google.com/')
     print("Please Sign into OpenAI ChatGPT manually...")
     input("Press Enter to proceed:")
-    # test if signed in
-    # send inital query
+    
+    # solves error "target window already closed":
+    driver2.switch_to.window(driver2.window_handles[-1])
+
+    # send intital prompt
+    send_keysElement(
+        wait2,
+        '//*[@id="prompt-textarea"]',
+        'test\n'
+    )
+
+    # find a way to get response when done typing
+    res = locateElement(
+        wait2,
+        '/html/body/div[1]/div[2]/main/div[1]/div[1]/div/div/div/div/article[2]/div/div/div[2]/div/div[1]'
+    )
+    print(f"ChatGPT Response To Inital Message: {res}")
 
 def run():
     #signInTwitter()
@@ -141,4 +156,4 @@ if __name__ == '__main__':
 
 
 
-    input("quit:")
+    input("Press Enter to Quit:")
