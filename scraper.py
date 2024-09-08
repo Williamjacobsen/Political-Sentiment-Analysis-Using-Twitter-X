@@ -91,27 +91,45 @@ def signInTwitter():
         '//*[@id="layers"]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div/div/div/button[2]/div'
     )
 
-    send_keysElement(
+    login_option = locateElement(
         wait1,
-        '//*[@id="layers"]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[1]/div/div[2]/label/div/div[2]/div/input',
-        os.getenv('XUSERNAME')
+        '//*[@id="modal-header"]/span/span'
     )
-    clickElement(
-        driver1,
-        wait1,
-        '//*[@id="layers"]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[2]/div/div/div/button/div'
-    )
+    if "password" in login_option.lower():
+        send_keysElement(
+            wait1,
+            '//*[@id="layers"]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[1]/div/div/div[3]/div/label/div/div[2]/div[1]/input',
+            os.getenv('XPASSWORD')
+        )
+        clickElement(
+            driver1,
+            wait1,
+            '//*[@id="layers"]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[2]/div/div[1]/div/div/button/div'
+        )
 
-    send_keysElement(
-        wait1,
-        '//*[@id="layers"]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[1]/div/div/div[3]/div/label/div/div[2]/div[1]/input',
-        os.getenv('PASSWORD')
-    )
-    clickElement(
-        driver1,
-        wait1,
-        '//*[@id="layers"]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[2]/div/div[1]/div/div/button/div'
-    )
+    # due to "suspicious activity on your account", Twitter/X may ask questions:
+    else:
+        send_keysElement(
+            wait1,
+            '//*[@id="layers"]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[1]/div/div[2]/label/div/div[2]/div/input',
+            os.getenv('XUSERNAME')
+        )
+        clickElement(
+            driver1,
+            wait1,
+            '//*[@id="layers"]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[2]/div/div/div/button/div'
+        )
+
+        send_keysElement(
+            wait1,
+            '//*[@id="layers"]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[1]/div/div/div[3]/div/label/div/div[2]/div[1]/input',
+            os.getenv('XPASSWORD')
+        )
+        clickElement(
+            driver1,
+            wait1,
+            '//*[@id="layers"]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[2]/div/div[1]/div/div/button/div'
+        )
     
     # remove this test:
     for i in range(5):
@@ -137,18 +155,21 @@ def signInOpenai():
     send_keysElement(
         wait2,
         '//*[@id="prompt-textarea"]',
-        'test\n'
+        """given an input sentence only return a few values: true/false if the sentence is political, "Democrat"/"Republican" depening on which side it favors. output format: true - "Democrat".can you do that yes or no?\n"""
     )
 
-    # find a way to get response when done typing
-    res = locateElement(
-        wait2,
-        '/html/body/div[1]/div[2]/main/div[1]/div[1]/div/div/div/div/article[2]/div/div/div[2]/div/div[1]'
-    )
+    res = ""
+    while "yes" not in res.lower():
+        res = locateElement(
+            wait2,
+            '/html/body/div[1]/div[2]/main/div[1]/div[1]/div/div/div/div/article[2]/div/div/div[2]/div/div[1]'
+        )
+        time.sleep(0.1)
     print(f"ChatGPT Response To Inital Message: {res}")
+    print(time.sleep(0.5))
 
 def run():
-    #signInTwitter()
+    signInTwitter()
     signInOpenai()
 
 if __name__ == '__main__':
