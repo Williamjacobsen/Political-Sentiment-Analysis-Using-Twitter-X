@@ -1,37 +1,32 @@
+
+"""
+Sources:
+Selenium source: https://selenium-python.readthedocs.io/
+Parsing of text: https://www.crummy.com/software/BeautifulSoup/bs4/doc/ 
+
+Extra (solved minor issues):
+Solved issue with dotenv: https://www.reddit.com/r/flask/comments/116h0w4/having_issues_with_pythondotenv_for_my_flask/ 
+Wrong target window: https://stackoverflow.com/questions/64580493/selenium-giving-message-no-such-window-target-window-already-closed-from-unkn 
+Select standard search engine: https://stackoverflow.com/questions/78787332/selecting-default-search-engine-is-needed-for-chrome-version-127
+"""
+
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.keys import Keys
-from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 import time
 import os
-import pickle
-from datetime import datetime
-import sys
-import chromedriver_autoinstaller
-from dotenv import find_dotenv, load_dotenv
+from dotenv import load_dotenv
 
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(BASEDIR, '.env'))
-
-sys.path.insert(0,'/usr/lib/chromium-browser/chromedriver')
+# Source: https://www.reddit.com/r/flask/comments/116h0w4/having_issues_with_pythondotenv_for_my_flask/
 
 chrome_options = webdriver.ChromeOptions()
-#chrome_options.add_argument('--headless') # ensure GUI is off
-chrome_options.add_argument("--disable-search-engine-choice-screen")
-chrome_options.add_argument("--disable-blink-features")
-chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-chrome_options.add_experimental_option('useAutomationExtension', False)
-chrome_options.add_argument('--no-sandbox')
-chrome_options.add_argument('--disable-dev-shm-usage')
 
-chromedriver_autoinstaller.install()
+chrome_options.add_argument("--disable-search-engine-choice-screen")
+# Source: https://stackoverflow.com/questions/78787332/selecting-default-search-engine-is-needed-for-chrome-version-127 
 
 driver1 = webdriver.Chrome(options=chrome_options)
 wait1 = WebDriverWait(driver1, 20)
@@ -47,7 +42,6 @@ def clickElement(driver, wait, xpath):
         showmore_link.click()
 
     except Exception:
-        print("Trying to click on the button again")
         driver.execute_script("arguments[0].click()", showmore_link)
 
 def locateElement(wait, xpath):
@@ -130,14 +124,6 @@ def signInTwitter():
             wait1,
             '//*[@id="layers"]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[2]/div/div[1]/div/div/button/div'
         )
-    
-    # remove this test:
-    for i in range(5):
-        text = locateElement(
-            wait1,
-            f'/html/body/div[1]/div/div/div[2]/main/div/div/div/div[1]/div/div[5]/section/div/div/div[{i}]/div/div/article/div/div/div[2]/div[2]/div[2]'
-        )
-        print(text)
 
 def signInOpenai():
     """
@@ -150,6 +136,7 @@ def signInOpenai():
     
     # solves error "target window already closed":
     driver2.switch_to.window(driver2.window_handles[-1])
+    # Source: https://stackoverflow.com/questions/64580493/selenium-giving-message-no-such-window-target-window-already-closed-from-unkn 
 
     # send intital prompt
     send_keysElement(
@@ -171,9 +158,35 @@ def signInOpenai():
 def run():
     signInTwitter()
     signInOpenai()
+    #return
+    
+    # Scrapes all tweets on home page (not relevant)
+    f = open("data.txt", "w")
+
+    i = 0
+    while True:
+        for j in range(10):
+            try:
+                driver1.execute_script(f"window.scrollTo(0, {2000*i});")
+                author = locateElement(
+                    wait1,
+                    f'/html/body/div[1]/div/div/div[2]/main/div/div/div/div/div/div[5]/section/div/div/div[{i}]/div/div/article/div/div/div[2]/div[2]/div[1]/div/div[1]/div/div/div[1]/div/a/div/div[1]/span/span'
+                )
+                text = locateElement(
+                    wait1,
+                    f'/html/body/div[1]/div/div/div[2]/main/div/div/div/div[1]/div/div[5]/section/div/div/div[{i}]/div/div/article/div/div/div[2]/div[2]/div[2]'
+                )
+                print(i)
+                print(text)
+                if text:
+                    f.write("Author: " + author + "\n" + text +"\n\n")
+            except Exception as e:
+                print(e)
+            i += 1
 
 if __name__ == '__main__':
     run()
+    #driver1.get('https://ChatGPT.com') # To show that we get blocked immediately
 
 
 
